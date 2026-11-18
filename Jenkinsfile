@@ -15,7 +15,7 @@ pipeline {
         IMAGE_TAG      = "${BUILD_NUMBER}"
         CONTAINER_NAME = 'frontend-container'
         ECR_REGISTRY   = '887074880802.dkr.ecr.eu-north-1.amazonaws.com'
-        ECR_URI        = '887074880802.dkr.ecr.eu-north-1.amazonaws.com/frontend-website'
+        ECR_URI        = '887074880802.dkr.ecr.eu-north-1.amazonaws.com/frontend-web'
     }
 
     stages {
