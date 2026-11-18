@@ -1,29 +1,67 @@
+
 pipeline {
     agent any
 
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+    }
+
+    environment {
+        IMAGE_NAME = 'frontend-website'
+        CONTAINER_NAME = 'frontend-container'
+    }
+
     stages {
-        stage('Checkout') {
+
+        stage('Pull Code from GitHub') {
             steps {
-                echo 'GitHub source checkout successful'
+                echo 'Pulling source code from GitHub'
+                checkout scm
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'sudo docker build -t my-new-app:latest .'
+                echo 'Building Docker image'
+                sh 'docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} .'
             }
         }
 
-        stage('Stop Old Container') {
+        stage('Stop Existing Container') {
             steps {
-                sh 'sudo docker rm -f new-container || true'
+                sh 'docker rm -f ${CONTAINER_NAME} || true'
             }
         }
 
-        stage('Deploy') {
+        stage('Run Docker Container') {
             steps {
-                sh 'sudo docker run -d --name new-container -p 80:80 my-new-app:latest'
+                sh '''
+                    docker run -d \
+                    --name ${CONTAINER_NAME} \
+                    --restart unless-stopped \
+                    -p 80:80 \
+                    ${IMAGE_NAME}:${BUILD_NUMBER}
+                '''
             }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                sh 'docker ps'
+                sh 'curl -f http://localhost/'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'CI/CD Pipeline completed successfully!'
+            echo 'Website deployed on AWS EC2.'
+        }
+
+        failure {
+            echo 'Pipeline failed. Check Console Output.'
         }
     }
 }
